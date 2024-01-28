@@ -46,64 +46,63 @@ async def scan_bulbs(db: Session = Depends(db.get_db)):
         return {'error': f"Scan error: {error}"}
 
 
-@app.get("/wiz/on/{ip}")
-async def switch_on_bulb(ip: str, db: Session = Depends(db.get_db)):
+@app.get("/wiz/on/{ip_or_name}")
+async def switch_on_bulb(ip_or_name: str, db: Session = Depends(db.get_db)):
     try:
         bulbs = []
-        if ip == 'all':
-            db_bulbs = repo.get_online_bulbs(db)
-            for bulb in db_bulbs:
-                bulbs.append(await wiz.on(bulb.ip, db))
-        else:
-            bulb = repo.get_bulb(db, ip)
-            if not bulb:
-                return {'error': f"Bulb not found '{ip}'"}
-            bulbs.append(await wiz.on(ip, db))
+        db_bulbs = repo.get_online_bulbs(db) if ip_or_name == 'all' else repo.get_bulbs(db, ip_or_name)
+        for bulb in db_bulbs:
+            bulbs.append(await wiz.on(bulb.ip, db))
 
         print(f'on: {bulbs}')
         return {'bulbs': bulbs}
     except Exception as error:
-        return {'error': f"Cannot on '{ip}': {error}"}
+        return {'error': f"Cannot on '{ip_or_name}': {error}"}
 
 
-@app.get("/wiz/off/{ip}")
-async def switch_off_bulb(ip: str, db: Session = Depends(db.get_db)):
+@app.get("/wiz/off/{ip_or_name}")
+async def switch_off_bulb(ip_or_name: str, db: Session = Depends(db.get_db)):
     try:
         bulbs = []
-        if ip == 'all':
-            db_bulbs = repo.get_online_bulbs(db)
-            for bulb in db_bulbs:
-                bulbs.append(await wiz.off(bulb.ip, db))
-        else:
-            bulb = repo.get_bulb(db, ip)
-            if not bulb:
-                return {'error': f"Bulb not found '{ip}'"}
-            bulbs.append(await wiz.off(ip, db))
+        db_bulbs = repo.get_online_bulbs(db) if ip_or_name == 'all' else repo.get_bulbs(db, ip_or_name)
+        for bulb in db_bulbs:
+            bulbs.append(await wiz.off(bulb.ip, db))
 
         print(f'off: {bulbs}')
         return {'bulbs': bulbs}
     except Exception as error:
-        return {'error': f"Cannot off '{ip}': {error}"}
+        return {'error': f"Cannot off '{ip_or_name}': {error}"}
 
 
-@app.get("/wiz/scene/{ip}/{scene_id}")
-async def change_bulb_scene(ip: str, scene_id: int, db: Session = Depends(db.get_db)):
+@app.get("/wiz/scene/{ip_or_name}/{scene_id}")
+async def change_bulb_scene(ip_or_name: str, scene_id: int, db: Session = Depends(db.get_db)):
     try:
         bulbs = []
-        if ip == 'all':
-            db_bulbs = repo.get_online_bulbs(db)
-            for bulb in db_bulbs:
-                bulbs.append(await wiz.scene(bulb.ip, scene_id, db))
-        else:
-            bulb = repo.get_bulb(db, ip)
-            if not bulb:
-                return {'error': f"Bulb not found '{ip}'"}
-            bulbs.append(await wiz.scene(ip, scene_id, db))
+        db_bulbs = repo.get_online_bulbs(db) if ip_or_name == 'all' else repo.get_bulbs(db, ip_or_name)
+        for bulb in db_bulbs:
+            bulbs.append(await wiz.scene(bulb.ip, scene_id, db))
 
         print(f'scene: {bulbs}')
         return {'bulbs': bulbs}
     except Exception as error:
-        return {'error': f"Cannot change scene '{ip}': {error}"}
+        return {'error': f"Cannot change scene '{ip_or_name}': {error}"}
+
+
+@app.get("/wiz/toggle/{ip_or_name}/{scene_id}")
+async def toggle_bulb_scene(ip_or_name: str, scene_id: int, db: Session = Depends(db.get_db)):
+    try:
+        bulbs = []
+        db_bulbs = repo.get_online_bulbs(db) if ip_or_name == 'all' else repo.get_bulbs(db, ip_or_name)
+        for bulb in db_bulbs:
+            if bulb.state == 0 or bulb.scene_id != scene_id:
+                bulbs.append(await wiz.scene(bulb.ip, scene_id, db))
+            else:
+                bulbs.append(await wiz.off(bulb.ip, db))
+
+        print(f'toggle: {bulbs}')
+        return {'bulbs': bulbs}
+    except Exception as error:
+        return {'error': f"Cannot toggle scene '{ip_or_name}': {error}"}
 
 
 @app.get("/crud/bulbs")

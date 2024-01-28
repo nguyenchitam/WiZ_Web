@@ -22,6 +22,11 @@ def get_online_bulbs(db):
     return db.query(models.Bulb).filter(models.Bulb.state >= 0).order_by(models.Bulb.name).all()
 
 
+def get_bulbs(db, ip_or_name):
+    return db.query(models.Bulb).filter((models.Bulb.ip == ip_or_name) | (models.Bulb.name == ip_or_name)).order_by(
+        models.Bulb.name).all()
+
+
 def get_bulb(db, ip):
     return db.query(models.Bulb).filter(models.Bulb.ip == ip).first()
 

@@ -45,6 +45,8 @@ async def on(ip, db):
         await bulb.turn_on(PilotBuilder(brightness=255))
     except Exception as error:
         print(f'Cannot switch on {ip}: {error}')
+        repo.update_bulb_down(db, ip)
+        return repo.get_bulb(db, ip)
 
     return await update_state(ip, db)
 
@@ -55,6 +57,8 @@ async def off(ip, db):
         await bulb.turn_off()
     except Exception as error:
         print(f'Cannot switch off {ip}: {error}')
+        repo.update_bulb_down(db, ip)
+        return repo.get_bulb(db, ip)
 
     return await update_state(ip, db)
 
@@ -65,5 +69,7 @@ async def scene(ip, scene_id, db):
         await bulb.turn_on(PilotBuilder(scene=scene_id))
     except Exception as error:
         print(f'Cannot change {ip} to scene {scene_id}: {error}')
+        repo.update_bulb_down(db, ip)
+        return repo.get_bulb(db, ip)
 
     return await update_state(ip, db)
